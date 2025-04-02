@@ -219,12 +219,33 @@ module.exports = grammar({
     _command_token: $ => token(/[^\(\)\{\}\s;]+/),
 
     // Parameters
-    command_parameter: $ => token(
-      choice(
-        /-+[a-zA-Z_?\-`]+/,
+    command_parameter: $ => {
+      // Define operator patterns that could cause issues
+      const operatorPatterns = [
+        "-not", "-and", "-or", "-xor", "-eq", "-ne", "-gt", "-lt", "-le", "-ge", 
+        "-like", "-notlike", "-match", "-notmatch", "-contains", "-notcontains", 
+        "-in", "-notin", "-is", "-isnot", "-as", "-replace", "-join", "-split"
+      ];
+      
+      // Create patterns for parameters starting with these operators
+      const operatorPrefixPatterns = operatorPatterns.map(op => 
+        new RegExp(`(?i)${op}[a-zA-Z0-9_]+`)
+      );
+      
+      return token(choice(
+        // First match parameters that start with known operators
+        ...operatorPrefixPatterns,
+        // Then the general pattern
+        /-+[a-zA-Z0-9_?\-`]+/,
         "--"
-      )
-    ),
+      ))
+    },
+    // command_parameter: $ => token(
+    //   choice(
+    //     /-+[a-zA-Z_?\-`]+/,
+    //     "--"
+    //   )
+    // ),
 
     _verbatim_command_argument_chars: $ => repeat1(
       choice(
