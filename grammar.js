@@ -1,4 +1,5 @@
 const PREC = {
+  COMMAND_PARAM: 6,
   KEYWORD: 1,
   UNARY: 2,
   CAST : 3,
@@ -219,27 +220,58 @@ module.exports = grammar({
     _command_token: $ => token(/[^\(\)\{\}\s;]+/),
 
     // Parameters
-    command_parameter: $ => {
-      // Define operator patterns that could cause issues
-      const operatorPatterns = [
-        "-not", "-and", "-or", "-xor", "-eq", "-ne", "-gt", "-lt", "-le", "-ge", 
-        "-like", "-notlike", "-match", "-notmatch", "-contains", "-notcontains", 
-        "-in", "-notin", "-is", "-isnot", "-as", "-replace", "-join", "-split"
-      ];
+    // command_parameter: $ => {
+    //   // Define problematic operator prefixes
+    //   const operatorPrefixes = [
+    //     "-not", "-and", "-or", "-eq", "-ne", "-gt", "-lt", 
+    //     "-like", "-match", "-contains", "-is", "-as", "-xor",
+    //     "-join", "-split", "-replace"
+    //   ];
       
-      // Create patterns for parameters starting with these operators
-      const operatorPrefixPatterns = operatorPatterns.map(op => 
-        new RegExp(`(?i)${op}[a-zA-Z0-9_]+`)
-      );
+    //   // Create case-insensitive patterns using the existing helper
+    //   const operatorPatterns = operatorPrefixes.map(prefix => {
+    //     // Only make the part after '-' case-insensitive
+    //     const caselessPattern = '-' + caseInsensitive(prefix.slice(1));
+    //     return new RegExp(`${caselessPattern}[a-zA-Z0-9_]+`);
+    //   });
       
-      return token(choice(
-        // First match parameters that start with known operators
-        ...operatorPrefixPatterns,
-        // Then the general pattern
-        /-+[a-zA-Z0-9_?\-`]+/,
+    //   return prec(PREC.COMMAND_PARAM, token(
+    //     choice(
+    //       // First try specific patterns for operator-prefixed parameters
+    //       ...operatorPatterns,
+    //       // Then fall back to the general pattern
+    //       /-+[a-zA-Z_?\-`]+/,
+    //       "--"
+    //     )
+    //   ));
+    // },
+    // command_parameter: $ => {
+    //   // Define operator patterns that could cause issues
+    //   const operatorPatterns = [
+    //     "-not", "-and", "-or", "-xor", "-eq", "-ne", "-gt", "-lt", "-le", "-ge", 
+    //     "-like", "-notlike", "-match", "-notmatch", "-contains", "-notcontains", 
+    //     "-in", "-notin", "-is", "-isnot", "-as", "-replace", "-join", "-split"
+    //   ];
+      
+    //   // Create patterns for parameters starting with these operators
+    //   const operatorPrefixPatterns = operatorPatterns.map(op => 
+    //     new RegExp(`(?i)${op}[a-zA-Z0-9_]+`)
+    //   );
+      
+    //   return token(choice(
+    //     // First match parameters that start with known operators
+    //     ...operatorPrefixPatterns,
+    //     // Then the general pattern
+    //     /-+[a-zA-Z0-9_?\-`]+/,
+    //     "--"
+    //   ))
+    // },
+    command_parameter: $ => prec(PREC.COMMAND_PARAM, token(
+      choice(
+        /-+[a-zA-Z_?\-`]+/,
         "--"
-      ))
-    },
+      )
+    )),
     // command_parameter: $ => token(
     //   choice(
     //     /-+[a-zA-Z_?\-`]+/,
